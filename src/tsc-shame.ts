@@ -152,38 +152,6 @@ async function main() {
             .toString()
         let data = JSON.parse(trace)
 
-        const findSourceFile = groupAndFilterTopLevelEvents(
-            data,
-            'findSourceFile',
-            (event) => {
-                if (!event.args) {
-                    return ''
-                }
-                let file = event.args.fileName
-                if (!file) {
-                    return ''
-                }
-                // extract node_modules package name, only packages that start with @, for example @remix-run/react
-                const packageNameWithScope = file.match(
-                    /node_modules\/(@[^/]+\/[^/]+)/,
-                )?.[1]
-                if (packageNameWithScope) {
-                    return packageNameWithScope
-                }
-                // extract node_modules package name
-                const packageName = file.match(
-                    /node_modules\/(?!\.)(.*?)\//,
-                )?.[1]
-                if (!packageName) {
-                    return ''
-                }
-                return packageName
-            },
-        )
-        printBarGraph(
-            'Top packages by findSourceFile duration',
-            findSourceFile.slice(0, 20),
-        )
         let replaceBWithX = addDurationToBEvents(data, (event) => {
             if (!event.args?.path) {
                 return ''
@@ -219,6 +187,38 @@ async function main() {
         printBarGraph(
             'Top files by checkSourceFile duration',
             checkSourceFile.slice(0, 20),
+        )
+        const findSourceFile = groupAndFilterTopLevelEvents(
+            data,
+            'findSourceFile',
+            (event) => {
+                if (!event.args) {
+                    return ''
+                }
+                let file = event.args.fileName
+                if (!file) {
+                    return ''
+                }
+                // extract node_modules package name, only packages that start with @, for example @remix-run/react
+                const packageNameWithScope = file.match(
+                    /node_modules\/(@[^/]+\/[^/]+)/,
+                )?.[1]
+                if (packageNameWithScope) {
+                    return packageNameWithScope
+                }
+                // extract node_modules package name
+                const packageName = file.match(
+                    /node_modules\/(?!\.)(.*?)\//,
+                )?.[1]
+                if (!packageName) {
+                    return ''
+                }
+                return packageName
+            },
+        )
+        printBarGraph(
+            'Top packages by findSourceFile duration',
+            findSourceFile.slice(0, 20),
         )
         console.log()
         console.log(
