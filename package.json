@@ -1,7 +1,7 @@
 {
     "name": "tsc-shame",
-    "version": "0.0.0",
-    "description": "",
+    "version": "0.0.1",
+    "description": "Find which node_modules are causing slow tsc type checking",
     "main": "dist/tsc-shame.js",
     "types": "dist/tsc-shame.d.ts",
     "bin": "bin.js",
@@ -19,8 +19,8 @@
     "keywords": [],
     "author": "Tommaso De Rossi, morse <beats.by.morse@gmail.com>",
     "license": "ISC",
-    "dependencies": {},
     "devDependencies": {
+        "@changesets/cli": "^2.27.7",
         "@types/node": "^20.14.10"
     }
 }
