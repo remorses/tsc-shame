@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "useUnknownInCatchVariables": false,
+        "module": "CommonJS",
+        "allowJs": true,
+        "moduleResolution": "Node",
+        "lib": ["es2020", "es7", "es6", "ESNext"],
+        "declaration": true,
+        "downlevelIteration": true,
+        "declarationMap": true,
+        "strict": false,
+        "esModuleInterop": true,
+        "noImplicitAny": false,
+        "sourceMap": true,
+        "jsx": "react",
+        "skipLibCheck": true,
+        "rootDir": "src",
+        "types": ["node"],
+        "outDir": "dist"
+    },
+    "include": ["src"]
+}
