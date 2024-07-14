@@ -14,6 +14,51 @@ interface TraceEvent {
     args: any
 }
 
+function addDurationToBEvents(
+    events: TraceEvent[],
+    keyFn: (event: TraceEvent) => string,
+): TraceEvent[] {
+    const stack: { [key: string]: TraceEvent } = {}
+    const processedEvents: TraceEvent[] = []
+
+    events.forEach((event) => {
+        if (event.dur) {
+            return
+        }
+        if (event.ph !== 'B' && event.ph !== 'E') {
+            return
+        }
+        const key = keyFn(event)
+        if (!key) {
+            return
+        }
+
+        if (event.ph === 'B') {
+            stack[key] = { ...event }
+        } else if (event.ph === 'E') {
+            const startEvent = stack[key]
+            if (startEvent) {
+                const duration = event.ts - startEvent.ts
+                processedEvents.push({
+                    ...startEvent,
+                    dur: duration,
+                    ph: 'X', // Change phase to 'X' to indicate it now has duration
+                })
+                delete stack[key]
+            }
+        } else {
+            processedEvents.push(event)
+        }
+    })
+
+    // Handle any unclosed 'B' events
+    Object.values(stack).forEach((event) => {
+        processedEvents.push(event)
+    })
+
+    return processedEvents
+}
+
 function groupAndFilterTopLevelEvents(
     events: TraceEvent[],
     eventName: string,
@@ -24,23 +69,27 @@ function groupAndFilterTopLevelEvents(
         { milliseconds: number; key: string; event: TraceEvent }
     >()
 
-    events
-        .filter((event) => event.name === eventName)
-        .forEach((event) => {
-            const key = keyFn(event)
-            if (!key) {
-                return
-            }
-            const existingEvent = groupedEvents.get(key)
+    let filtered = events.filter((event) => event.name === eventName)
 
-            if (!existingEvent || event.dur > existingEvent.event.dur) {
-                groupedEvents.set(key, {
-                    milliseconds: Number((event.dur / 1000).toFixed(1)),
-                    key,
-                    event,
-                })
-            }
-        })
+    filtered.forEach((event) => {
+        const key = keyFn(event)
+        if (!key) {
+            return
+        }
+
+        const existingEvent = groupedEvents.get(key)
+
+        if (
+            !existingEvent ||
+            (event.dur && event.dur > existingEvent.event.dur)
+        ) {
+            groupedEvents.set(key, {
+                milliseconds: Number((event.dur / 1000).toFixed(1)),
+                key,
+                event,
+            })
+        }
+    })
 
     return Array.from(groupedEvents.values()).sort(
         (a, b) => b.milliseconds - a.milliseconds,
@@ -48,15 +97,20 @@ function groupAndFilterTopLevelEvents(
 }
 
 function printBarGraph(
+    title,
     data: { milliseconds: number; key: string }[],
     maxBars: number = 20,
 ) {
+    if (!data.length) {
+        console.log('No chart data found')
+        return
+    }
     const sortedData = data.slice(0, maxBars)
     const maxDuration = Math.max(...sortedData.map((d) => d.milliseconds))
     const maxBarLength = 50
     const maxKeyLength = Math.max(...sortedData.map((d) => d.key.length))
 
-    console.log('\nTop packages by findSourceFile duration:')
+    console.log(`\n${title}:`)
     console.log(
         '=' + '='.repeat(maxKeyLength) + '===' + '='.repeat(maxBarLength) + '=',
     )
@@ -96,8 +150,10 @@ async function main() {
         const trace = fs
             .readFileSync(path.join(tempDir, 'trace.json'))
             .toString()
-        const result = groupAndFilterTopLevelEvents(
-            JSON.parse(trace),
+        let data = JSON.parse(trace)
+
+        const findSourceFile = groupAndFilterTopLevelEvents(
+            data,
             'findSourceFile',
             (event) => {
                 if (!event.args) {
@@ -124,8 +180,46 @@ async function main() {
                 return packageName
             },
         )
+        printBarGraph(
+            'Top packages by findSourceFile duration',
+            findSourceFile.slice(0, 20),
+        )
+        let replaceBWithX = addDurationToBEvents(data, (event) => {
+            if (!event.args?.path) {
+                return ''
+            }
+            return event.name + event.pid + event.tid + (event.args.path || '')
+        })
+        const checkSourceFile = groupAndFilterTopLevelEvents(
+            replaceBWithX,
+            'checkSourceFile',
+            (event) => {
+                if (!event.args) {
+                    return ''
+                }
+                let file = event.args.path
+                if (!file) {
+                    return ''
+                }
+                let pathWIthLastNodeModule = file.match(
+                    /node_modules\/(?!\.)(.*)/,
+                )?.[1]
+                if (pathWIthLastNodeModule) {
+                    return pathWIthLastNodeModule
+                }
 
-        printBarGraph(result.slice(0, 20))
+                return path.relative(
+                    process.cwd().toLowerCase(),
+                    file.toLowerCase(),
+                )
+                return file
+            },
+        )
+
+        printBarGraph(
+            'Top files by checkSourceFile duration',
+            checkSourceFile.slice(0, 20),
+        )
         console.log()
         console.log(
             `For more details on which node_modules files are causing the slowdown, refer to the tsc tracing guide:`,
