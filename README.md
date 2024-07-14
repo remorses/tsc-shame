@@ -1,8 +1,8 @@
 <div align='center'>
     <br/>
     <br/>
-    <h3>vite-plugin-nft</h3>
-    <p>Next.js standalone implementation for Vite</p>
+    <h3>tsc-shame</h3>
+    <p>Find heavy node_modules slowing down your tsc type checking</p>
     <br/>
     <br/>
 </div>
