@@ -75,10 +75,12 @@ async function main() {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tsc-shame-'))
 
     try {
-        console.log('Generating trace with tsc...')
+        const tscPath = getTscPath()
+        console.log()
+        console.log('Generating trace with tsc, this may take a while...')
         try {
             execSync(
-                `pnpm tsc --incremental false --composite false --generateTrace ${tempDir}`,
+                `${tscPath} --incremental false --composite false --generateTrace ${tempDir}`,
                 {
                     shell: 'bash',
                     stdio: 'inherit',
@@ -132,6 +134,24 @@ async function main() {
         console.log()
     } finally {
         fs.rmSync(tempDir, { recursive: true })
+    }
+}
+
+function getTscPath() {
+    // try resolve typescript with require from the current cwd
+    try {
+        const tscPath = require.resolve('typescript/package.json', {
+            paths: [process.cwd()],
+        })
+        const binFile = path.join(path.dirname(tscPath), 'bin/tsc')
+        if (fs.existsSync(binFile)) {
+            console.log(
+                `Using tsc from ${path.relative(process.cwd(), binFile)}`,
+            )
+            return binFile
+        }
+    } catch (e) {
+        return 'tsc'
     }
 }
 

@@ -21,6 +21,7 @@
     "license": "ISC",
     "devDependencies": {
         "@changesets/cli": "^2.27.7",
-        "@types/node": "^20.14.10"
+        "@types/node": "^20.14.10",
+        "typescript": "^5.5.3"
     }
 }
