@@ -16,6 +16,7 @@ interface TraceEvent {
 
 function groupAndFilterTopLevelEvents(
     events: TraceEvent[],
+    eventName: string,
     keyFn: (event: TraceEvent) => string,
 ) {
     const groupedEvents = new Map<
@@ -24,7 +25,7 @@ function groupAndFilterTopLevelEvents(
     >()
 
     events
-        .filter((event) => event.name === 'findSourceFile')
+        .filter((event) => event.name === eventName)
         .forEach((event) => {
             const key = keyFn(event)
             if (!key) {
@@ -97,6 +98,7 @@ async function main() {
             .toString()
         const result = groupAndFilterTopLevelEvents(
             JSON.parse(trace),
+            'findSourceFile',
             (event) => {
                 if (!event.args) {
                     return ''
