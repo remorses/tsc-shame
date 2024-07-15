@@ -1,5 +1,11 @@
 # tsc-shame
 
+## 0.2.0
+
+### Minor Changes
+
+- print bind times too, which are about 1/5 of tsc time
+
 ## 0.1.1
 
 ### Patch Changes
