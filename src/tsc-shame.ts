@@ -14,6 +14,12 @@ interface TraceEvent {
     args: any
 }
 
+interface GroupItem {
+    milliseconds: number
+    key: string
+    event: TraceEvent
+}
+
 function addDurationToBEvents(
     events: TraceEvent[],
     keyFn: (event: TraceEvent) => string,
@@ -87,7 +93,7 @@ function groupAndFilterTopLevelEvents(
                 milliseconds: Number((event.dur / 1000).toFixed(1)),
                 key,
                 event,
-            })
+            } as GroupItem)
         }
     })
 
@@ -153,10 +159,11 @@ async function main() {
         let data = JSON.parse(trace)
 
         let replaceBWithX = addDurationToBEvents(data, (event) => {
-            if (!event.args?.path) {
+            let path = event.args?.path || event.args?.fileName
+            if (!path) {
                 return ''
             }
-            return event.name + event.pid + event.tid + (event.args.path || '')
+            return event.name + event.pid + event.tid + path
         })
         const checkSourceFile = groupAndFilterTopLevelEvents(
             replaceBWithX,
@@ -184,42 +191,52 @@ async function main() {
             },
         )
 
+        const getPackageName = (event: TraceEvent) => {
+            if (!event.args) {
+                return ''
+            }
+            let file = event.args.fileName || event.args.path
+            if (!file) {
+                return ''
+            }
+            // extract node_modules package name, only packages that start with @, for example @remix-run/react
+            const packageNameWithScope = file.match(
+                /node_modules\/(@[^/]+\/[^/]+)/,
+            )?.[1]
+            if (packageNameWithScope) {
+                return packageNameWithScope
+            }
+            // extract node_modules package name
+            const packageName = file.match(/node_modules\/(?!\.)(.*?)\//)?.[1]
+            if (!packageName) {
+                return ''
+            }
+            return packageName
+        }
+
         printBarGraph(
             'Top files by checkSourceFile duration',
             checkSourceFile.slice(0, 20),
         )
+        const bindTimes = groupAndFilterTopLevelEvents(
+            replaceBWithX,
+            'bindSourceFile',
+            getPackageName,
+        )
         const findSourceFile = groupAndFilterTopLevelEvents(
             data,
             'findSourceFile',
-            (event) => {
-                if (!event.args) {
-                    return ''
-                }
-                let file = event.args.fileName
-                if (!file) {
-                    return ''
-                }
-                // extract node_modules package name, only packages that start with @, for example @remix-run/react
-                const packageNameWithScope = file.match(
-                    /node_modules\/(@[^/]+\/[^/]+)/,
-                )?.[1]
-                if (packageNameWithScope) {
-                    return packageNameWithScope
-                }
-                // extract node_modules package name
-                const packageName = file.match(
-                    /node_modules\/(?!\.)(.*?)\//,
-                )?.[1]
-                if (!packageName) {
-                    return ''
-                }
-                return packageName
-            },
+            getPackageName,
         )
+        const merged = mergeGroups(findSourceFile, bindTimes)
         printBarGraph(
-            'Top packages by findSourceFile duration',
-            findSourceFile.slice(0, 20),
+            'Top packages by findSourceFile + bindSourceFile duration',
+            merged.slice(0, 20),
         )
+        // printBarGraph(
+        //     'Top packages by bindSourceFile duration',
+        //     bindTimes.slice(0, 20),
+        // )
         console.log()
         console.log(
             `For more details on which node_modules files are causing the slowdown, refer to the tsc tracing guide:`,
@@ -249,6 +266,36 @@ function getTscPath() {
     } catch (e) {
         return 'tsc'
     }
+}
+
+function mergeGroups(events: GroupItem[], bindTimes: GroupItem[]) {
+    const merged = new Map<string, GroupItem>()
+    events.forEach((event) => {
+        const existingEvent = merged.get(event.key)
+        if (!existingEvent) {
+            merged.set(event.key, event)
+        } else {
+            merged.set(event.key, {
+                milliseconds: existingEvent.milliseconds + event.milliseconds,
+                key: event.key,
+                event: event.event,
+            })
+        }
+    })
+    bindTimes.forEach((event) => {
+        const existingEvent = merged.get(event.key)
+        if (!existingEvent) {
+            merged.set(event.key, event)
+        } else {
+            merged.set(event.key, {
+                milliseconds: existingEvent.milliseconds + event.milliseconds,
+                key: event.key,
+                event: event.event,
+            })
+        }
+    })
+
+    return Array.from(merged.values())
 }
 
 main()
