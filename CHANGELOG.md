@@ -1,5 +1,11 @@
 # tsc-shame
 
+## 0.2.2
+
+### Patch Changes
+
+- try remove json stringify for windows bs
+
 ## 0.2.1
 
 ### Patch Changes
