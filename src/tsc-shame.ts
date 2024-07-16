@@ -136,14 +136,14 @@ async function main() {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tsc-shame-'))
 
     try {
+        const nodePath = process.argv0
         const tscPath = getTscPath()
         console.log()
         console.log('Generating trace with tsc, this may take a while...')
         try {
             execSync(
-                `${tscPath} --incremental false --composite false --generateTrace ${tempDir}`,
+                `${nodePath} ${tscPath} --incremental false --composite false --generateTrace ${tempDir}`,
                 {
-                    shell: 'bash',
                     stdio: 'inherit',
                     // env: { ...process.env, folder: tempDir },
                 },
