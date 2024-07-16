@@ -19,7 +19,7 @@
     ],
     "keywords": [],
     "author": "Tommaso De Rossi, morse <beats.by.morse@gmail.com>",
-    "license": "ISC",
+    "license": "MIT",
     "devDependencies": {
         "@changesets/cli": "^2.27.7",
         "@types/node": "^20.14.10",
