@@ -1,5 +1,11 @@
 # tsc-shame
 
+## 0.2.1
+
+### Patch Changes
+
+- don't use shell in node, make windows work, fix #1
+
 ## 0.2.0
 
 ### Minor Changes
