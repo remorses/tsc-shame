@@ -141,7 +141,7 @@ async function main() {
         console.log('Generating trace with tsc, this may take a while...')
         try {
             execSync(
-                `${JSON.stringify(tscPath)} --incremental false --composite false --generateTrace ${JSON.stringify(tempDir)}`,
+                `${tscPath} --incremental false --composite false --generateTrace ${tempDir}`,
                 {
                     stdio: 'inherit',
                     // env: { ...process.env, folder: tempDir },
