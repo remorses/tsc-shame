@@ -149,6 +149,7 @@ async function main() {
             )
         } catch (e) {
             console.log()
+            console.error(e.message)
             console.error(`tsc failed, continuing anyway with the trace`)
         }
 
