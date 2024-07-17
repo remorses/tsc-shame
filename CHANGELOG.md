@@ -1,5 +1,11 @@
 # tsc-shame
 
+## 0.2.3
+
+### Patch Changes
+
+- Make windows work
+
 ## 0.2.2
 
 ### Patch Changes
