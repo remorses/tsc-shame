@@ -261,7 +261,7 @@ function getTscPath() {
             console.log(
                 `Using tsc from ${path.relative(process.cwd(), binFile)}`,
             )
-            return process.execPath + ' ' + binFile
+            return `"${process.execPath}" "${binFile}"`
         }
     } catch (e) {
         return 'tsc'

@@ -1,5 +1,11 @@
 # tsc-shame
 
+## 0.2.4
+
+### Patch Changes
+
+- Fix windows and paths with spaces in them, fix #3
+
 ## 0.2.3
 
 ### Patch Changes
