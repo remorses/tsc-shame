@@ -159,7 +159,7 @@ async function main() {
             .catch(() => '')
         if (!trace) {
             console.log()
-            console.error('Failed to generate trace.json, tsc failed')
+            console.error('Failed to generate tsc trace.json, make sure to be in a directory with a tsconfig.json file')
             return
         }
         let data = JSON.parse(trace)
