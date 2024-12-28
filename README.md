@@ -47,6 +47,37 @@ This command will generate a trace of the `tsc` execution and then print a bar g
 
 This tool helped me remove `googleapis` from my project, which cut in half type checking time.
 
+## How it works
+
+Under the hood, tsc-shame:
+
+1. Runs `tsc` with the following options:
+   - `--incremental false` - Disables incremental compilation
+   - `--composite false` - Disables composite project mode
+   - `--generateTrace <tempDir>` - Generates trace data in a temporary directory
+
+2. The trace data is saved to a `trace.json` file which contains detailed timing information about TypeScript's compilation process, including:
+   - Time spent checking each source file
+   - Time spent finding and loading files
+   - Time spent binding types
+
+3. tsc-shame then analyzes this trace data to:
+   - Group events by file/package name
+   - Calculate total duration for each file/package
+   - Sort them by duration to identify the slowest ones
+
+4. Finally, it generates two bar graphs showing:
+   - Top files by checkSourceFile duration - Shows which individual files take longest to type check
+   - Top packages by findSourceFile + bindSourceFile duration - Shows which node_modules packages are slowest overall
+
+This helps identify which dependencies are causing TypeScript performance bottlenecks, allowing you to:
+- Remove or replace slow dependencies
+- Consider moving slow dependencies to devDependencies if they're only needed for development
+- Split up large files that are slow to type check
+
+
+
+
 ## License
 
 MIT

@@ -1,5 +1,53 @@
 # tsc-shame
 
+## 0.2.13
+
+### Patch Changes
+
+- testing releases
+
+## 0.2.12
+
+### Patch Changes
+
+- testing
+
+## 0.2.11
+
+### Patch Changes
+
+- testing releases
+
+## 0.2.10
+
+### Patch Changes
+
+- .
+
+## 0.2.9
+
+### Patch Changes
+
+- testing releases
+
+## 0.2.8
+
+### Patch Changes
+
+- Testing github release
+
+## 0.2.7
+
+### Patch Changes
+
+- Fix readme
+
+## 0.2.6
+
+### Patch Changes
+
+- Better readme
+
 ## 0.2.5
 
 ### Patch Changes
