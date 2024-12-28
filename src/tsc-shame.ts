@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 
-import { execSync } from 'child_process'
+import { execSync, spawnSync } from 'child_process'
 interface TraceEvent {
     name: string
     ts: number
@@ -140,10 +140,11 @@ async function main() {
         console.log()
         console.log('Generating trace with tsc, this may take a while...')
         try {
-            execSync(
+            spawnSync(
                 `${tscPath} --incremental false --composite false --generateTrace ${tempDir}`,
                 {
                     stdio: 'inherit',
+                    shell: true,
                     // env: { ...process.env, folder: tempDir },
                 },
             )
@@ -153,9 +154,14 @@ async function main() {
             console.error(`tsc failed, continuing anyway with the trace`)
         }
 
-        const trace = fs
-            .readFileSync(path.join(tempDir, 'trace.json'))
-            .toString()
+        const trace = await fs.promises
+            .readFile(path.join(tempDir, 'trace.json'), 'utf-8')
+            .catch(() => '')
+        if (!trace) {
+            console.log()
+            console.error('Failed to generate trace.json, tsc failed')
+            return
+        }
         let data = JSON.parse(trace)
 
         let replaceBWithX = addDurationToBEvents(data, (event) => {
