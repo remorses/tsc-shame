@@ -1,5 +1,11 @@
 # tsc-shame
 
+## 0.2.14
+
+### Patch Changes
+
+- ad20e69: Change changeset commit to true
+
 ## 0.2.13
 
 ### Patch Changes

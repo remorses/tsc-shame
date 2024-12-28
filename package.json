@@ -1,6 +1,6 @@
 {
     "name": "tsc-shame",
-    "version": "0.2.13",
+    "version": "0.2.14",
     "description": "Find which node_modules are causing slow tsc type checking",
     "main": "dist/tsc-shame.js",
     "types": "dist/tsc-shame.d.ts",
